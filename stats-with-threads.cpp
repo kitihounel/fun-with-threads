@@ -6,12 +6,15 @@
 #include <map>
 #include <iomanip>
 #include <thread>
+#include <mutex>
 
 typedef struct Country {
     std::string name;
     std::string code;
     Country(std::string s, std::string c): name(s), code(c) {}
 } Country;
+
+std::mutex animate_mutex;
 
 /*!
  * Compute population percentage per blood group for a given country.
@@ -46,13 +49,13 @@ void generate_stats(const Country &country, std::map<std::string, float> &stats)
  */
 void print_stats(const Country &country, const std::map<std::string, float> &m)
 {
+    std::cout << std::endl;
     std::cout << "Stats for " << country.name << std::endl;
     std::cout << std::setprecision(2);
     for (const auto &[k, v]: m) {
         std::cout << std::setw(2) << k << std::setw(0);
         std::cout << ": " << std::fixed << v << "%" << std::endl;
     }
-    std::cout << std::endl;
 }
 
 /*!
@@ -70,22 +73,30 @@ void animate(bool *should_animate)
     using namespace std::chrono_literals;
 
     std::string symbols = "|/-\\";
+    bool show_animation = false;
 
     std::cout << "Crunching data...\x20\x20";
-    std::cout.flush(); 
-    while (*should_animate) {
+    std::cout.flush();
+    while (true) {
+        animate_mutex.lock();
+        show_animation = *should_animate;
+        animate_mutex.unlock();
+
+        if (!show_animation) {
+            break;
+        }
+
         for (size_t i = 0; i < symbols.length(); ++i) {
             std::cout << "\b" << symbols[i];
-            // I had to flush cout so that the animation would show up.
             std::cout.flush();
-            // I added some delay here so that the animation is more visible.
-            std::this_thread::sleep_for(120ms);
+            // This delay here enables the animation to be more visible.
+            std::this_thread::sleep_for(150ms);
         }
     }
 
-    // For pretty print and remove animation char.
+    // The following line removes the animation char.
     std::cout << "\b" << " " << std::endl;
-    std::cout << "Done." << std::endl << std::endl;
+    std::cout << "Done." << std::endl;
 }
 
 int main()
@@ -110,7 +121,10 @@ int main()
         t.join();
     }
 
+    animate_mutex.lock();
     should_animate = false;
+    animate_mutex.unlock();
+
     thread_animate.join();
 
     for (size_t i = 0; i < std::size(countries); ++i) {
