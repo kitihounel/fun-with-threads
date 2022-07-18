@@ -1,15 +1,16 @@
 # fun-with-threads
 
 This a small project used to show how threads can be used to improve performance 
-of programs which need to do a lot of computation.s It was made for a talk about
+of programs which need to do a lot of computations. It was made for a talk about
 Node.js event loop during the first metup of JsBenin.
 
-The purpose af the programs is to genarate stats about blood group for some West
+The purpose of the programs is to generate stats about blood group for some West
 Africa countries.
 
 # Requirements
 
 This code was written and tested on Ubuntu 20.04.
+
 The only requirement is the `pthread` lib which should be available by default on the system.
 
 # Data Generation
